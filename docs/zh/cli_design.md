@@ -1,3 +1,10 @@
+---
+title: 命令行设计规范
+description: 'Serverless Devs 命令行设计规范'
+position: 10
+category: '概述'
+---
+
 # 命令行设计规范
 
 Serverless Devs 作为 Serverless 领域的开发者工具，其输出的标准化和规范化会在一定程度上对用户体验有比较明显的影响。

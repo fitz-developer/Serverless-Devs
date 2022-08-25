@@ -1,7 +1,7 @@
 /** @format */
 
-import program from 'commander';
-import { configSet } from '../utils';
+import program from '@serverless-devs/commander';
+import { setConfig } from '../utils';
 import { InitManager } from './init-manager';
 import { emoji } from '../utils/common';
 import { HandleError } from '../error';
@@ -14,17 +14,21 @@ const description = `Initialize a new project based on a template. You can initi
         $ s init
         $ s init project
         $ s init project -d my_dir
+        $ s init project --appName my-express
+        $ s init project --parameters '{"serviceName":"websiteService"}'
         $ s init git@github.com:foo/bar.git
         $ s init https://github.com/foo/bar.git
         
-${emoji('🚀')} More Case: ${colors.underline('https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/awesome.md')}`;
+${emoji('🚀')} More applications: ${colors.underline('https://registry.serverless-devs.com')}`;
 
 program
   .name('s init')
   .helpOption('-h, --help', 'Display help for command')
   .usage('[options] [name | url]')
-  .option('-d, --dir [dir]', 'Where to output the initialized app into (default: ./<ProjectName> )')
-  .option('-r, --registry [url]', 'Use specify registry ')
+  .option('-d, --dir <dir>', 'Where to output the initialized app into (default: ./<ProjectName> )')
+  .option('-r, --registry <url>', 'Use specify registry')
+  .option('--parameters <parameters>', 'Initialize with custom parameters')
+  .option('--appName <appName>', 'Modify default Application name')
   .description(description)
   .addHelpCommand(false)
   .parse(process.argv);
@@ -32,13 +36,10 @@ program
   const initManager = new InitManager();
   const { dir, registry } = program as any;
   if (registry) {
-    configSet.setConfig('registry', registry);
+    setConfig('registry', registry);
   }
   const name = program.args[0];
   await initManager.init(name, dir);
 })().catch(async error => {
-  await new HandleError({
-    error,
-  }).report(error);
-  process.exit(1);
+  await HandleError(error);
 });

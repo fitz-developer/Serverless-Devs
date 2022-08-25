@@ -1,3 +1,10 @@
+---
+title: Config 命令
+description: 'Config 命令'
+position: 2
+category: '命令'
+---
+
 # Config 命令
 
 `config`命令是密钥信息相关的命令，包括密钥的配置、密钥的查看以及密钥的修改、删除等。
@@ -12,8 +19,12 @@
 - [config delete 命令](#config-delete-命令)
     - [参数解析](#参数解析-2)
     - [操作案例](#操作案例-2)
+- [config rename 命令](#config-rename-命令)
+    - [参数解析](#参数解析-3)
+    - [操作案例](#操作案例-3)
 - [注意事项](#注意事项)
-    - [通过环境变量配置密钥信息](#通过环境变量配置密钥信息)
+    - [通过环境变量设置密钥](#通过环境变量设置密钥)
+    - [关于配置密钥的使用顺序](#关于配置密钥的使用顺序)
     
 ## 命令解析
 
@@ -33,12 +44,14 @@ Commands:
   add         ➕ Add an account
   get         ✔️ Get accounts
   delete      ✖️ Delete an account
+  rename      >️ Rename an account
 ```
 
-在该命令中，包括了三个子命令：
+在该命令中，包括了四个子命令：
 - [add：添加密钥配置](#config-add-命令)
 - [get：查看密钥配置](#config-get-命令)
 - [delete：删除密钥配置](#config-delete-命令)
+- [rename：重命名密钥配置](#config-rename-命令)
 
 
 ## config add 命令
@@ -128,7 +141,6 @@ $ s config add
 s config add 
 
 ? Please select a provider: Alibaba Cloud (alibaba)
-? AccountID **********
 ? AccessKeyID **********
 ? AccessKeySecret **********
 ? Please create alias for key pair. If not, please enter to skip default
@@ -136,12 +148,12 @@ s config add
 
 也可以通过命令式直接进行密钥的添加：
 ```shell script
-$ s config add --AccessKeyID ****** --AccessKeySecret ****** --AccountID ******
+$ s config add --AccessKeyID ****** --AccessKeySecret ****** 
 ```
 
 或者添加自定义内容：
 ```shell script
-$ s config add --AccessKeyID ****** -kl key1,key2,key3 -il info1,info2,info3
+$ s config add -kl key1,key2,key3 -il info1,info2,info3
 ```
 
 - 常见云厂商密钥配置内容
@@ -165,7 +177,6 @@ google:     PrivateKeyData
 >     - [Google Cloud](./../default_provider_config/gcp.md)
 >     - [华为云](./../default_provider_config/huaweicloud.md)
 >     - [腾讯云](./../default_provider_config/tencentcloud.md)
-
 
 ## config get 命令
 
@@ -263,16 +274,49 @@ $ s config delete -a test
 Key [test] has been successfully removed
 ```
 
-## 注意事项
+## config rename 命令
 
-### 通过环境变量配置密钥信息
+通过`config rename`命令，您可以更改配置过的密钥信息名称。
 
-在某些时候，密钥是不方便直接进行配置到 Serverless Devs 工具中，此时可以考虑将密钥信息放在环境变量中。
+通过`-h/--help`可以查看到配置帮助：
 
-例如，此时需要配置的密钥名为`s_secrets`，就可以在环境变量中，增加：
+```shell script
+$ s config rename -h
 
-```text
-s_secrets="{\"Key1\":\"Value1\",\"Key2\":\"Value2\"}"
+Usage: s config rename <sourceAliasName> <targetAliasName>
+
+You can rename an account.
+
+     Example:
+        $ s config rename sourceAliasName targetAliasName
+
+
+Options:
+  -h,--help                 Display help for command
 ```
 
-此时就可以在使用是通过`${env(s_secrets)}`进行指定的环境变量密钥使用。
+### 参数解析
+
+| 参数全称 | 参数缩写 | 是否必填 | 参数含义     |
+|-----|------|-----|----------|
+| sourceAliasName |      | 必填 | 原始密钥的别名  |
+| targetAliasName |      | 必填 | 变更后密钥的别名 |
+
+### 操作案例
+
+如果想要变更某个已经配置的密钥的别名，可以通过`config rename`进行删除，例如，想要删除别名为`test`的密钥信息别名为`test2`，就可以执行：
+
+```shell script
+$ s config rename test test2  
+Key [test] has been successfully rename to [test2].
+```
+
+## 注意事项
+
+### 通过环境变量设置密钥
+
+详情可以参考：[开发者工具设计文档](../tool.md) 中的 [通过环境变量设置密钥](../tool.md#通过环境变量设置密钥)
+
+### 关于配置密钥的使用顺序
+
+详情可以参考：[开发者工具设计文档](../tool.md) 中的 [密钥使用顺序与规范](../tool.md#密钥使用顺序与规范)

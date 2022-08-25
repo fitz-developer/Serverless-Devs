@@ -1,11 +1,11 @@
-/** @format */
-
-import program, { Command } from 'commander';
-import { CommandError } from '../error';
-import CliManager from './cli-manager';
+import program from '@serverless-devs/commander';
 import core from '../utils/core';
-import { emoji } from '../utils/common';
-const { colors } = core;
+import path from 'path';
+import { HandleError } from '../error';
+import { emoji, getProcessArgv, getCredentialWithExisted, logger, specifyServiceHelp } from '../utils';
+const { chalk, loadComponent, lodash } = core;
+const { underline } = chalk;
+const { isEmpty, isString, includes } = lodash;
 
 const description = `Directly use serverless devs to use components, develop and manage applications without yaml configuration.
     
@@ -14,75 +14,101 @@ const description = `Directly use serverless devs to use components, develop and
         $ s cli fc-api listFunctions --service-name my-service
         $ s cli fc-api deploy -p "{/"function/": /"function-name/"}"
 
-${emoji('📖')} Document: ${colors.underline(
+${emoji('📖')} Document: ${underline(
   'https://github.com/Serverless-Devs/Serverless-Devs/tree/master/docs/zh/command/cli.md',
 )}`;
 
-const cliCommand = program
-  .name('s cli')
-  .usage('s cli [component] [method] [options]')
-  .option('-a, --access [aliasName]', 'Specify the access alias name')
-  .option('-p, --props [jsonString]', 'The json string of props')
-  .helpOption('-h, --help', 'Display help for command')
-  .description(description)
-  .addHelpCommand(false);
-
-const subCommandName = process.argv[2];
-if (subCommandName && !['-h', '--help'].includes(subCommandName)) {
-  const execCommand = new Command(subCommandName);
-  const customerCommandDescription = 'Subcommand execution analysis.';
-  execCommand.usage('[subcommand] -- [method] [params]');
-  execCommand.description(customerCommandDescription).addHelpCommand(true);
-  program.addCommand(execCommand);
-}
-
 (async () => {
-  if (process.argv.length === 2 || (process.argv.length === 3 && ['-h', '--help'].includes(process.argv[2]))) {
-    program.help();
-  } else {
-    const tempCommand = process.argv[3];
-    let start = false;
-    const processArgv: string[] = [];
-    let params: string[] = [];
-    let lastArgs;
-    const tempArgv = JSON.parse(process.env['serverless_devs_temp_argv']);
-    process.argv = process.argv.slice(0, 4).concat(tempArgv.slice(5, tempArgv.length));
+  const argvData = getProcessArgv();
+  const { _: rawData, noHelpArgv, access = 'default' } = argvData;
 
-    for (let i = 0; i < process.argv.length; i++) {
-      if (!start) {
-        processArgv.push(process.argv[i]);
-      } else {
-        params.push(process.argv[i]);
-      }
-      if (
-        ['-a', '--access', '-p', '--props'].includes(lastArgs) ||
-        ['-a', '--access', '-p', '--props'].includes(process.argv[i])
-      ) {
-        processArgv.push(process.argv[i]);
-      }
-      if (process.argv[i] === tempCommand) {
-        start = true;
-        if (['-h', '--help'].includes(tempCommand)) {
-          processArgv.pop();
-          processArgv.push('cli-help-options');
-        }
-      }
-      lastArgs = process.argv[i];
-    }
-    if (params.length !== 0) {
-      process.env.temp_params = params.join(' ');
-      process['temp_params'] = params;
-    }
+  program
+    .name('s cli')
+    .usage('[component] [method] [options]')
+    .option('-a, --access <aliasName>', 'Specify the access alias name.')
+    .option('-p, --props <jsonString>', 'The json string of props')
+    .helpOption('-h, --help', 'Display help for command')
+    .allowUnknownOption()
+    .description(description)
+    .addHelpCommand(false)
+    .parse(noHelpArgv);
 
-    process.argv = processArgv;
-    cliCommand.parse(process.argv);
-    const [component, command] = program.args;
-
-    let { access, props } = program as any;
-    access = process.env['serverless_devs_temp_access'] ? process.env['serverless_devs_temp_access'] : access;
-    const cliManager = new CliManager({ command, component, access, props });
-    cliManager.init();
+  //  s cli
+  if (rawData.length === 1) {
+    return program.help();
   }
-})().catch(err => {
-  throw new CommandError(err.message);
+  const [componentName, method] = rawData.slice(1);
+  const instance = await loadComponent(componentName);
+
+  async function  getCurentCredential(access:string){
+    if (access === core.ALIYUN_CLI) {
+      return await core.getCredential(access);
+    } 
+    return  await getCredentialWithExisted(access);
+  }
+
+  async function execComponent(_method) {
+    const credentials = await getCurentCredential(access);
+    let tempProp = {};
+    try {
+      const p = argvData.props || argvData.p;
+      tempProp = p ? JSON.parse(p) : {};
+    } catch (e) {
+      throw new Error('-p/--props parameter format error');
+    }
+    const argsObj = rawData
+      .slice(3)
+      .filter(o => !includes(argvData._argsObj, o))
+      .concat(argvData._argsObj);
+    const inputs = {
+      props: tempProp,
+      credentials: credentials || {},
+      appName: 'default',
+      project: {
+        component: componentName,
+        access,
+        projectName: 'default',
+        provider: undefined,
+      },
+      command: _method,
+      args: argsObj.join(' '),
+      argsObj,
+      path: {
+        configPath: process.cwd(),
+      },
+    };
+    const res = await instance[_method](inputs);
+    if (isEmpty(res)) {
+      return logger.success(`End of method: ${_method}`);
+    }
+    isString(res) ? logger.success(res) : logger.output(res);
+  }
+  // s cli fc-api
+  if (rawData.length === 2) {
+    if (instance['index']) {
+      return await execComponent('index');
+    }
+    if (instance.__doc && instance.__doc().length > 1685) {
+      const docResult = instance.__doc();
+      return logger.log(docResult);
+    }
+    const publishPath = path.join(instance.__path, 'publish.yml');
+    await specifyServiceHelp(publishPath);
+  }
+
+  // s cli fc-api listServices
+  // s cli fc-api set access default
+  if (rawData.length >= 3) {
+    if (instance[method]) {
+      return await execComponent(method);
+    }
+    throw new Error(
+      JSON.stringify({
+        message: 'The specified command cannot be found.',
+        tips: 'Please refer to the help document of [-h/--help] command.',
+      }),
+    );
+  }
+})().catch(async error => {
+  await HandleError(error);
 });

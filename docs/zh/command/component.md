@@ -1,3 +1,10 @@
+---
+title: Component 命令
+description: 'Component 命令'
+position: 8
+category: '命令'
+---
+
 # Component 命令
 
 `component`命令是获取已经安装的组件详情信息。
@@ -36,7 +43,7 @@ Options:
 
 ### 操作案例
 
-如果想要获取某个组件，可以通过`--component`参数与具体的组件名进行清理，例如：
+如果想要获取某个组件，可以通过`--component`参数与具体的组件名进行查询，例如：
 
 ```shell script
 $ s component --component fc-api
@@ -59,7 +66,6 @@ $ s component
 🔎 serverless registry [http://registry.devsapp.cn/simple] 
 Component     Description           Size        Version 
 fc            阿里云函数计算基础组件    100 MB       0.1.27
-devsapp/fc    阿里云函数计算基础组件    100 MB       0.1.27
 devsapp/fc    阿里云函数计算基础组件    100 MB       0.1.27
 fc-api        函数计算api操作组件      100 MB       0.0.44
 

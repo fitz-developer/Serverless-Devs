@@ -79,7 +79,7 @@
             </td>
             <td align="center" width="20%">
                 <img src="https://avatars.githubusercontent.com/u/23737468?v=4" width="20%" style="min-width: 100px"><br>
-                <p>黄沐<br><a href="https://github.com/huangfushan"> Github</a> | Blog</p>
+                <p>huangfushan<br><a href="https://github.com/huangfushan"> Github</a> | Blog</p>
             </td>
             <td align="center" width="20%">
                 <img src="https://avatars.githubusercontent.com/u/84389274?v=4" width="20%" style="min-width: 100px"><br>
@@ -122,8 +122,8 @@
                 <p>金炳<br><a href="https://github.com/stone-jin"> Github</a> | <a href="https://www.fedfans.com">Blog</a></p>
             </td>
             <td align="center" width="20%">
-                <img src="https://avatars.githubusercontent.com/u/45506000?v=4" width="20%" style="min-width: 100px"><br>
-                <p>吹风机<br><a href="https://github.com/chuifengji"> Github</a> | <a href="https://ethan.nt-geek.club/">Blog</a></p>
+                <img src="https://avatars.githubusercontent.com/u/21330840?v=4" width="20%" style="min-width: 100px"><br>
+                <p>xsahxl<br><a href="https://github.com/xsahxl"> Github</a> | <a href="https://github.com/xsahxl/">Blog</a></p>
             </td>
             <td align="center" width="20%">
                 <img src="https://avatars.githubusercontent.com/u/626967?v=4" width="20%" style="min-width: 100px"><br>
@@ -143,6 +143,120 @@
                 <img src="https://avatars.githubusercontent.com/u/23239892?v=4" width="20%" style="min-width: 100px"><br>
                 <p>Gao Zhiyuan<br><a href="https://github.com/alapha23"> Github</a> | Blog</p>
              </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/16589915?v=4" width="20%" style="min-width: 100px"><br>
+                <p>abuexclusive<br><a href="https://github.com/abuexclusive"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/43059886?v=4" width="20%" style="min-width: 100px"><br>
+                <p>ALIFYB<br><a href="https://github.com/ALIFYB"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/16112202?v=4" width="20%" style="min-width: 100px"><br>
+                <p>AndyManastorm<br><a href="https://github.com/AndyManastorm"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/87457323?v=4" width="20%" style="min-width: 100px"><br>
+                <p>helloyonger<br><a href="https://github.com/helloyonger"> Github</a> | Blog</p>
+             </td>
+        </tr>
+        <tr>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/38310830?v=4" width="20%" style="min-width: 100px"><br>
+                <p>liulang0817<br><a href="https://github.com/liulang0817"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/11471925?v=4" width="20%" style="min-width: 100px"><br>
+                <p>muxiangqiu<br><a href="https://github.com/muxiangqiu"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/24456528?v=4" width="20%" style="min-width: 100px"><br>
+                <p>sujie1024<br><a href="https://github.com/sujie1024"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/20966000?v=4" width="20%" style="min-width: 100px"><br>
+                <p>王垒<br><a href="https://github.com/wangbricks"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/4948057?v=4" width="20%" style="min-width: 100px"><br>
+                <p>Yousong Zhou<br><a href="https://github.com/yousong"> Github</a> | Blog</p>
+             </td>
+        </tr>
+        <tr>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/3947771?v=4" width="20%" style="min-width: 100px"><br>
+                <p>InsightBit<br><a href="https://github.com/insight-bit"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/5763215?v=4" width="20%" style="min-width: 100px"><br>
+                <p>lowkeyrd<br><a href="https://github.com/lowkeyrd"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/45677661?v=4" width="20%" style="min-width: 100px"><br>
+                <p>jessie<br><a href="https://github.com/jessie123jiang"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/91404839?v=4" width="20%" style="min-width: 100px"><br>
+                <p>SkyWingOzora<br><a href="https://github.com/SkyWingOzora"> Github</a> | Blog</p>
+             </td>
+             <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/19836250?v=4" width="20%" style="min-width: 100px"><br>
+                <p>kasey<br><a href="https://github.com/huanhunx"> Github</a> | Blog</p>
+             </td>
+        </tr>
+        <tr>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/14832743?v=4" width="20%" style="min-width: 100px"><br>
+                <p>Gao Yang<br><a href="https://github.com/echosoar"> Github</a> | Blog</p>
+             </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/32314363?v=4" width="20%" style="min-width: 100px"><br>
+                <p>week<br><a href="https://github.com/brewHouses"> Github</a> | Blog</p>
+             </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/21168270?v=4" width="20%" style="min-width: 100px"><br>
+                <p>Logan Zhang<br><a href="https://github.com/loganhz"> Github</a> | Blog</p>
+            </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/59047063?v=4" width="20%" style="min-width: 100px"><br>
+                <p>陈穗龙<br><a href="https://github.com/duolabmeng6"> Github</a> | Blog</p>
+            </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/34342879?&v=4" width="20%" style="min-width: 100px"><br>
+                <p>liufangchen<br><a href="https://github.com/liufangchen"> Github</a> | Blog</p>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/38881498?v=4" width="20%" style="min-width: 100px"><br>
+                <p>Chunying Pi<br><a href="https://github.com/Joycepy"> Github</a> | <a href="https://joycepy.github.io/">Blog</a></p>
+            </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/94942133?v=4" width="20%" style="min-width: 100px"><br>
+                <p>Fitz_dev<br><a href="https://github.com/fitz-developer"> Github</a> | Blog</p>
+            </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/61337085?v=4" width="20%" style="min-width: 100px"><br>
+                <p>Dejiang Wang<br><a href="https://github.com/wizardAEI"> Github</a> | <a href="https://juejin.cn/user/3457299575741608">Blog</a></p>
+            </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/20182252?v=4" width="20%" style="min-width: 100px"><br>
+                <p>iMaeGoo<br><a href="https://github.com/imaegoo"> Github</a> | <a href="https://www.imaegoo.com/">Blog</a></p>
+            </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/3351337?v=4" width="20%" style="min-width: 100px"><br>
+                <p>Mofei<br><a href="https://github.com/zmofei"> Github</a> | <a href="https://www.zhuwenlong.com/">Blog</a></p>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/42271882?v=4" width="20%" style="min-width: 100px"><br>
+                <p>0xff01<br><a href="https://github.com/XZYW"> Github</a> | Blog</p>
+            </td>
+            <td align="center" width="20%">
+                <img src="https://avatars.githubusercontent.com/u/20847533?v=4" width="20%" style="min-width: 100px"><br>
+                <p>niuhuan<br><a href="https://github.com/niuhuan"> Github</a> | <a href="https://github.com/niuhuan/notebook">Blog</a></p>
+            </td>
         </tr>
     </table>
 </center>

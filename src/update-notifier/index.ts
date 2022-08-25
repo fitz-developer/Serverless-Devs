@@ -2,7 +2,7 @@ import path from 'path';
 import { execDaemon } from '../execDaemon';
 import latestVersion from 'latest-version';
 import boxen from 'boxen';
-import { UPDATE_CHECK_INTERVAL } from '../constants/static-variable';
+import { UPDATE_CHECK_INTERVAL } from '../constant';
 import core from '../utils/core';
 const { fse: fs, chalk, execa, getRootHome } = core;
 const pkg = require('../../package.json');
@@ -27,6 +27,8 @@ class UpdateNotifier {
     return key ? require(updateNotifierPath)[key] : require(updateNotifierPath);
   }
   check() {
+    if (core.isCiCdEnv()) return;
+    if (core.useLocal()) return;
     if (!this.config('lastUpdateCheck')) return true;
     return Date.now() - this.config('lastUpdateCheck') > UPDATE_CHECK_INTERVAL;
   }
@@ -59,6 +61,7 @@ class UpdateNotifier {
   }
   notify() {
     if (!this.config('output')) return;
+    if (pkg.version === this.config('latest')) return;
     const defaultTemplate = `Update available ${chalk.dim(pkg.version)} ${chalk.reset('→')} ${chalk.green(
       this.config('latest'),
     )} \nRun ${chalk.cyan(`npm i -g ${pkg.name}`)} to update`;

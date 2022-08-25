@@ -2,24 +2,84 @@
 
 import path from 'path';
 import fs from 'fs';
-import _ from 'lodash';
-// import { getConfig } from './handler-set-config';
 import os from 'os';
-// import osLocale from 'os-locale';
-import { HumanError } from '../error';
 import core, { getCoreVersion } from './core';
-const { colors, jsyaml: yaml } = core;
+import { getConfig } from './handler-set-config';
+import logger from './logger';
+
 const pkg = require('../../package.json');
+const { colors, got, isDocker, isCiCdEnv, lodash, publishHelp } = core;
+const { get, trim, assign, filter, includes, omit, isPlainObject, isEmpty } = lodash;
+const { underline, bold } = colors;
 
 export const red = colors.hex('#fd5750');
+export const yellow = colors.hex('#F3F99D');
 export const bgRed = colors.hex('#000').bgHex('#fd5750');
 
+export const getProcessArgv = () => {
+  const { serverless_devs_temp_argv } = process.env;
+  try {
+    const tempArgv = JSON.parse(serverless_devs_temp_argv);
+    const data = core.getGlobalArgs(tempArgv);
+    // 修复 argv 参数
+    process.argv = process.argv.slice(0, 2).concat(data._argsObj);
+    return assign({}, data, {
+      noHelpArgv: process.argv.slice(0, 2).concat(filter(data._argsObj, o => !includes(['-h', '--help'], o))),
+    });
+  } catch (error) {
+    return {};
+  }
+};
+
+export const getCredentialWithExisted = async (access: string) => {
+  const data = await core.getCredentialAliasList();
+  if (includes(data, access)) {
+    const info = await core.getCredential(access);
+    return info;
+  }
+};
+
+export const getCredentialWithAll = async () => {
+  const data = await core.getCredentialAliasList();
+  if (data.length > 0) {
+    const res = {};
+    for (const access of data) {
+      const info = await core.getCredential(access);
+      res[info.Alias] = omit(info, 'Alias');
+    }
+    return res;
+  }
+};
+
+export const aiRequest = async (message, category: string = 'unknow') => {
+  try {
+    const analysis = getConfig('analysis');
+    if (analysis !== 'enable') return;
+    // 在CICD环境中不处理
+    if (isDocker() || isCiCdEnv()) return;
+    const list = await got(`http://qaapis.devsapp.cn/apis/v1/search?category=${category}&code=TypeError&s=${message}`, {
+      timeout: 2000,
+      json: true,
+    });
+    const shorturl = get(list.body, 'shorturl');
+    if (shorturl) {
+      logger.log(`AI Tips:\nYou can try to solve the problem through: ${colors.underline(shorturl)}\n`);
+    }
+  } catch (error) {
+    // exception
+  }
+};
+
 export function getVersion() {
-  return getCoreVersion()
-    ? `${pkg.name}: ${pkg.version}, @serverless-devs/core: ${getCoreVersion()}, ${process.platform}-${
-        process.arch
-      }, node-${process.version}`
-    : `${pkg.name}: ${pkg.version}, ${process.platform}-${process.arch}, node-${process.version}`;
+  const coreVersion = getCoreVersion();
+  const data = [
+    `${pkg.name}: ${pkg.version}`,
+    coreVersion ? `core: ${coreVersion}` : undefined,
+    `s-home: ${core.getRootHome()}`,
+    `${process.platform}-${process.arch}`,
+    `node-${process.version}`,
+  ];
+  return data.filter(o => o).join(', ');
 }
 
 export async function getFolderSize(rootItemPath: string) {
@@ -37,94 +97,6 @@ export async function getFolderSize(rootItemPath: string) {
   }
   const folderSize = Array.from(fileSizes.values()).reduce((total, fileSize) => total + fileSize, 0);
   return folderSize;
-}
-
-export function yamlLoad(filePath: string) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  try {
-    return yaml.load(content);
-  } catch (error) {
-    if (['-h', '--help'].includes(process.argv[2])) return;
-    const filename = path.basename(filePath);
-    new HumanError({
-      errorMessage: `${filename} format is incorrect`,
-      tips: `Please check the configuration of ${filename}, Serverless Devs' Yaml specification document can refer to：${colors.underline(
-        'https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/yaml.md',
-      )}`,
-    });
-    process.exit(1);
-  }
-}
-
-function checkTemplateFormat(filePath: string, json = false) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  let fileObj = json ? JSON.parse(content) : yamlLoad(filePath);
-  if (!fileObj) return false;
-  for (const eveKey in fileObj) {
-    if (fileObj[eveKey].Component && fileObj[eveKey].Provider && fileObj[eveKey].Properties) {
-      return true;
-    }
-  }
-  // 新版本规范
-  return fileObj.hasOwnProperty('edition');
-}
-
-export function checkAndReturnTemplateFile() {
-  if (process.env['serverless_devs_temp_template']) {
-    return process.env['serverless_devs_temp_template'];
-  }
-  const currentDir = process.cwd();
-  let templateTag = process.argv.includes('-t') ? '-t' : process.argv.includes('--template') ? '--template' : null;
-  const index = templateTag ? process.argv.indexOf(templateTag) : -1;
-  if (index !== -1) {
-    const tempFileIndex = index + 1;
-    const tempFileName = process.argv[tempFileIndex];
-    if (tempFileName) {
-      if (tempFileName.endsWith('.yaml') || tempFileName.endsWith('.yml') || tempFileName.endsWith('.json')) {
-        const jsonType = tempFileName.endsWith('.json') ? true : false;
-        if (
-          fs.existsSync(path.join(currentDir, tempFileName)) &&
-          checkTemplateFormat(path.join(currentDir, tempFileName), jsonType)
-        ) {
-          process.argv.splice(index, 2);
-          // 对临时参数进行存储
-          const tempArgv = JSON.parse(process.env['serverless_devs_temp_argv']);
-          tempArgv.splice(tempArgv.indexOf(templateTag), 2);
-          process.env['serverless_devs_temp_argv'] = JSON.stringify(tempArgv);
-          process.env['serverless_devs_temp_template'] = path.join(currentDir, tempFileName);
-          return path.join(currentDir, tempFileName);
-        } else if (fs.existsSync(tempFileName) && checkTemplateFormat(tempFileName, jsonType)) {
-          process.argv.splice(index, 2);
-          // 对临时参数进行存储
-          const tempArgv = JSON.parse(process.env['serverless_devs_temp_argv']);
-          tempArgv.splice(tempArgv.indexOf(templateTag), 2);
-          process.env['serverless_devs_temp_argv'] = JSON.stringify(tempArgv);
-          process.env['serverless_devs_temp_template'] = tempFileName;
-          return tempFileName;
-        }
-      }
-    }
-  }
-  if (fs.existsSync(path.join(currentDir, 's.yaml')) && checkTemplateFormat(path.join(currentDir, 's.yaml'))) {
-    process.env['serverless_devs_temp_template'] = path.join(currentDir, 's.yaml');
-    return path.join(currentDir, 's.yaml');
-  }
-  if (fs.existsSync(path.join(currentDir, 's.yml')) && checkTemplateFormat(path.join(currentDir, 's.yml'))) {
-    process.env['serverless_devs_temp_template'] = path.join(currentDir, 's.yml');
-    return path.join(currentDir, 's.yml');
-  }
-  if (fs.existsSync(path.join(currentDir, 's.json')) && checkTemplateFormat(path.join(currentDir, 's.json'), true)) {
-    process.env['serverless_devs_temp_template'] = path.join(currentDir, 's.json');
-    return path.join(currentDir, 's.json');
-  }
-  return null;
-}
-
-export function checkTemplateFile(templateFile: string) {
-  if (fs.existsSync(templateFile)) {
-    return templateFile;
-  }
-  return null;
 }
 
 export function printn(n: number, str = ' ') {
@@ -158,32 +130,13 @@ export function replaceFun(str, obj) {
   if (arr) {
     for (let i = 0; i < arr.length; i++) {
       let keyContent = arr[i].replace(/{{|}}/g, '');
-      let realKey = _.trim(keyContent.split('|')[0]);
+      let realKey = trim(keyContent.split('|')[0]);
       if (obj[realKey]) {
         str = str.replace(arr[i], obj[realKey]);
       }
     }
   }
-
   return str;
-}
-
-export function getTemplatekey(str) {
-  const reg = /\{\{(.*?)\}\}/g;
-  const arr = str.match(reg);
-  if (!arr) {
-    return [];
-  }
-  return arr
-    .filter(result => result)
-    .map(matchValue => {
-      let keyContent = matchValue.replace(/{{|}}/g, '');
-      let realKey = keyContent.split('|');
-      return {
-        name: _.trim(realKey[0]),
-        desc: _.trim(realKey[1]),
-      };
-    });
 }
 
 export function replaceTemplate(files: Array<string>, content: { [key: string]: string }) {
@@ -204,17 +157,48 @@ export function mark(source: string): string {
   return `***********${subStr}`;
 }
 
-export function emoji(emoji: string): string {
-  return os.platform() === 'win32' ? '' : emoji;
+export function emoji(text: string, fallback?: string) {
+  if (os.platform() === 'win32') {
+    return fallback || '◆';
+  }
+  return `${text} `;
 }
 
-export default {
-  checkAndReturnTemplateFile,
-  checkTemplateFile,
-  printn,
-  mark,
-  getLang,
-  replaceTemplate,
-  replaceFun,
-  getTemplatekey,
-};
+export function getTempCommandStr(commands: string, length: number) {
+  const commandsLength = commands.length;
+  const tempArray = new Array(length - commandsLength).fill(' ');
+  return `${commands}${tempArray.join('')} : `;
+}
+
+export async function specifyServiceHelp(filePath: string) {
+  const publishYamlInfor = await core.getYamlContent(filePath);
+  logger.log(
+    `\n  ${emoji('🚀')} ${publishYamlInfor['Name']}@${publishYamlInfor['Version']}: ${
+      publishYamlInfor['Description']
+    }\n`,
+  );
+  const commands = publishYamlInfor['Commands'];
+  if (commands) {
+    const maxLength = publishHelp.maxLen(commands);
+    let tmp = [];
+    const newObj = {};
+    for (const key in commands) {
+      const ele = commands[key];
+      isPlainObject(ele)
+        ? tmp.push(publishHelp.helpInfo(ele, underline(bold(key)), maxLength, 4))
+        : (newObj[key] = ele);
+    }
+    tmp.length > 0 && logger.log(tmp.join('\n'));
+    if (!isEmpty(newObj)) {
+      for (const key in newObj) {
+        logger.log(`    ${getTempCommandStr(key, maxLength)} ${newObj[key]}`);
+      }
+      logger.log('');
+    }
+    logger.log(
+      publishYamlInfor['HomePage']
+        ? `  ${emoji('🧭')} ${core.makeUnderLine('More information: ' + publishYamlInfor['HomePage'])} ` + '\n'
+        : '',
+    );
+  }
+}

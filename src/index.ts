@@ -1,136 +1,60 @@
-/** @format */
-
-// import 'v8-compile-cache';
-import program from 'commander';
-import {
-  registerCommandChecker,
-  recordCommandHistory,
-  registerCustomerCommand,
-  registerUniversalCommand,
-} from './utils/command-util';
-import { PROCESS_ENV_TEMPLATE_NAME } from './constants/static-variable';
-import path from 'path';
-import fs from 'fs';
-import { emoji, checkAndReturnTemplateFile, getVersion } from './utils/common';
+import program from '@serverless-devs/commander';
+import { registerCommandChecker, logger } from './utils';
+import { emoji, getVersion } from './utils/common';
 import UpdateNotifier from './update-notifier';
 import onboarding from './onboarding';
+import { HandleError } from './error';
+import SpecialCommad from './special-commad';
+import help from './help';
+import { COMMAND_LIST } from './constant';
 import core from './utils/core';
-import { HandleError, HumanError } from './error';
-import { updateTemplate } from './init/update-template';
-const { colors, jsyaml: yaml, getRootHome } = core;
 const pkg = require('../package.json');
-require('dotenv').config();
-
-async function setSpecialCommand() {
-  if (process.argv.length === 2) return;
-  if (['-v', '--version'].includes(process.argv[2])) return;
-  if (['init', 'config', 'set', 'cli', 'clean', 'component'].includes(process.argv[2])) return;
-  const templateFile = checkAndReturnTemplateFile();
-  if (templateFile) {
-    process.env[PROCESS_ENV_TEMPLATE_NAME] = templateFile;
-    // Determine whether basic instructions are used, if not useful, add general instructions, etc.
-    await registerCustomerCommand(program, templateFile); // Add user-defined commands
-    await registerUniversalCommand(program, templateFile); // Register pan instruction
-  } else {
-    if (['-h', '--help'].includes(process.argv[2])) return;
-    new HumanError({
-      errorMessage: 'the s.yaml/s.yml file was not found.',
-      tips: 'Please check if the s.yaml/s.yml file exists, you can also specify it with -t.',
-    });
-    process.exit(1);
-  }
-}
-
-async function globalParameterProcessing() {
-  // const tempGlobal = ['skip-action', 'debug'];
-  const tempGlobal = ['skip-actions'];
-  for (let i = 0; i < tempGlobal.length; i++) {
-    process.env[tempGlobal[i]] = 'false';
-    if (process.argv.includes('--' + tempGlobal[i])) {
-      process.env[tempGlobal[i]] = 'true';
-      process.argv.splice(process.argv.indexOf('--' + tempGlobal[i]), 1);
-    }
-  }
-}
-
-const description = `  _________                               .__
- /   _____/ ______________  __ ___________|  |   ____   ______ ______
- \\_____  \\_/ __ \\_  __ \\  \\/ // __ \\_  __ \\  | _/ __ \\ /  ___//  ___/
- /        \\  ___/|  | \\/\\   /\\  ___/|  | \\/  |_\\  ___/ \\___ \\ \\___ \\
-/_________/\\_____>__|    \\_/  \\_____>__|  |____/\\_____>______>______>
-
-Welcome to the Serverless Devs.
-
-More: 
-${emoji('📘')} Documents: ${colors.underline('https://github.com/Serverless-Devs/Serverless-Devs/tree/master/docs')}
-${emoji('🙌')} Discussions: ${colors.underline('https://github.com/Serverless-Devs/Serverless-Devs/discussions')}
-${emoji('📦')} Applications: ${colors.underline('https://github.com/Serverless-Devs/Serverless-Devs/blob/master/docs/zh/awesome.md')}
-
-Quick start:
-${emoji('🍻')} Can perform [s init] fast experience`;
+const { lodash } = core;
+const { join, includes } = lodash;
 
 (async () => {
+  process.env['CLI_VERSION'] = pkg.version;
   registerCommandChecker(program);
   const system_command = program
-    .description(description)
     .helpOption('-h, --help', `Display help for command.`)
+    .option('--debug', 'Open debug model.')
+    .option('--skip-actions', 'Skip the extends section.')
+    .option('-t, --template <templatePath>', 'Specify the template file.')
+    .option('-a, --access <aliasName>', 'Specify the access alias name.')
     .command('config', `${emoji('👤')} Configure venders account.`)
     .command('init', `${emoji('💞')} Initializing a serverless project.`)
     .command('cli', `${emoji('🐚')} Command line operation without yaml mode.`)
+    .command('verify', `${emoji('🔎')} Verify the application.`)
     .command('set', `${emoji('🔧')} Settings for the tool.`)
     .command('clean', `${emoji('💥')} Clean up the environment.`)
     .command('component', `${emoji('🔌')} Installed component information.`)
-    .option('-t, --template [templatePath]', 'Specify the template file.')
-    .option('-a, --access [aliasName]', 'Specify the access alias name.')
-    .option('--skip-actions', 'Skip the extends section.')
-    .option('--debug', 'Open debug model.')
+    .command('edit', `${emoji('🙌')} Application editing.`)
     .version(getVersion(), '-v, --version', 'Output the version number.')
     .addHelpCommand(false);
-
-  process.env['CLI_VERSION'] = pkg.version;
-
-  // 将参数存储到env
-  process.env['serverless_devs_temp_argv'] = JSON.stringify(process.argv);
+  // 将参数argv存储到env
+  process.env['serverless_devs_temp_argv'] = JSON.stringify(process.argv.slice(2));
+  // TODO: 目前core和s并不依赖temp_params环境变量，只是提供给组件用，后续组件移除temp_params后，此行代码可以删掉
+  process.env['temp_params'] = join(process.argv.slice(2), ' ');
 
   // ignore warning
   (process as any).noDeprecation = true;
 
   new UpdateNotifier().init().notify();
 
-  // update alibaba template
-  updateTemplate();
+  if (process.argv.length === 2) {
+    return await onboarding();
+  }
+  await help(system_command);
 
-  // 对帮助信息进行处理
-  if (process.argv.length === 2 || (process.argv.length === 3 && ['-h', '--help'].includes(process.argv[2]))) {
-    process.env['serverless_devs_out_put_help'] = 'true';
+  if (includes(COMMAND_LIST, process.argv[2])) {
+    core.makeLogFile();
+    system_command.parse(process.argv);
+  } else {
+    // 自定义指令: s deploy
+    await new SpecialCommad(system_command).init();
+    system_command.parse(process.argv.filter(o => o !== '-h'));
   }
 
-  // 处理额外的密钥信息
-  let templateTag = process.argv.includes('-a') ? '-a' : process.argv.includes('--access') ? '--access' : null;
-  const index = templateTag ? process.argv.indexOf(templateTag) : -1;
-  let accessFileInfo = {};
-  try {
-    const accessFile = path.join(getRootHome(), 'access.yaml');
-    accessFileInfo = yaml.load(fs.readFileSync(accessFile, 'utf8') || '{}');
-  } catch (e) {
-    accessFileInfo = {};
-  }
-  if (index !== -1 && process.argv[index + 1]) {
-    if (process.argv[2] == 'config') {
-      process.env['serverless_devs_temp_access'] = process.argv[index + 1];
-    } else if (Object.keys(accessFileInfo).includes(process.argv[index + 1])) {
-      process.env['serverless_devs_temp_access'] = process.argv[index + 1];
-      process.argv.splice(index, 2);
-      // 对临时参数进行存储
-      const tempArgv = JSON.parse(process.env['serverless_devs_temp_argv']);
-      tempArgv.splice(tempArgv.indexOf(templateTag), 2);
-      process.env['serverless_devs_temp_argv'] = JSON.stringify(tempArgv);
-    }
-  }
-
-  await globalParameterProcessing(); // global parameter processing
-  await setSpecialCommand(); // universal instruction processing
-  recordCommandHistory(process.argv); // add history record
   system_command.exitOverride(async error => {
     if (error.code === 'commander.help') {
       process.exit(program.args.length > 0 ? 1 : 0);
@@ -139,13 +63,11 @@ ${emoji('🍻')} Can perform [s init] fast experience`;
       process.exit(0);
     }
   });
-  if (process.argv.length > 2) {
-    return system_command.parse(process.argv);
-  }
-  await onboarding();
 })().catch(async error => {
-  await new HandleError({
-    error,
-  }).report(error);
-  process.exit(1);
+  await HandleError(error);
+});
+
+process.on('exit', code => {
+  logger.log('');
+  logger.debug(`process exitCode: ${code}`);
 });

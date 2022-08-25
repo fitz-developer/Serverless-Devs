@@ -1,4 +1,4 @@
-import program from 'commander';
+import program from '@serverless-devs/commander';
 import { CommandError, HumanError } from '../../error';
 import logger from '../../utils/logger';
 import core from '../../utils/core';
@@ -43,7 +43,7 @@ const promptOption = [
     const val = program.args[0];
     if (path.isAbsolute(val)) {
       setConfig('workspace', val);
-      logger.success('Setup succeeded');
+      logger.log('Setup succeeded', 'green');
     } else {
       new HumanError({
         errorMessage: 'You must provide an absolute path.',
